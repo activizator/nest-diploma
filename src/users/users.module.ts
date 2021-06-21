@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypegooseModule } from 'nestjs-typegoose';
-import { ClientsController } from './clients.controller';
-import { ClientsService } from './clients.service';
-import { UserModel } from './user.model';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
+import { UserModel } from './users.model';
 
 @Module({
-  controllers: [ClientsController],
-  providers: [ClientsService],
+  controllers: [UsersController],
+  providers: [UsersService],
   imports: [
     TypegooseModule.forFeature([
       {
@@ -18,4 +18,4 @@ import { UserModel } from './user.model';
     ]),
   ],
 })
-export class ClientsModule {}
+export class UsersModule {}

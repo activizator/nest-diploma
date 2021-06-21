@@ -15,5 +15,12 @@ import { Injectable } from '@nestjs/common';
 //   findAll(params: SearchUserParams): Promoise<User[]>;
 // }
 
+// Поле role может принимать одно из следующих значений:
+
+// client
+// admin
+// manager
+// При поиске IUserService.findAll() поля email, name и contactPhone должны проверяться на частичное совпадение.
+
 @Injectable()
-export class ClientsService {}
+export class UsersService {}

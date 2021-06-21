@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HotelsModule } from './hotels/hotels.module';
-import { ClientsModule } from './clients/clients.module';
+import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypegooseModule } from 'nestjs-typegoose';
@@ -17,7 +17,7 @@ import { getMongoConfig } from './config/mongo.config';
       useFactory: getMongoConfig,
     }),
     HotelsModule,
-    ClientsModule,
+    UsersModule,
     ReservationsModule,
   ],
   controllers: [AppController],

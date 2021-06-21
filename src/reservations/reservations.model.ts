@@ -1,6 +1,6 @@
 import { prop, Ref } from '@typegoose/typegoose';
 import { Base } from '@typegoose/typegoose/lib/defaultClasses';
-import { UserModel } from 'src/clients/user.model';
+import { UserModel } from 'src/users/users.model';
 import { HotelModel, HotelRoomModel } from 'src/hotels/hotels.models';
 
 export class ReservationModel extends Base {
