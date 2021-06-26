@@ -3,9 +3,10 @@ import { HotelsService } from './hotels.service';
 import { HotelsController } from './hotels.controller';
 import { HotelModel, HotelRoomModel } from './hotels.models';
 import { TypegooseModule } from 'nestjs-typegoose';
+import { HotelRoomService } from './hotel.room.service';
 
 @Module({
-  providers: [HotelsService],
+  providers: [HotelsService, HotelRoomService],
   controllers: [HotelsController],
   imports: [
     TypegooseModule.forFeature([
