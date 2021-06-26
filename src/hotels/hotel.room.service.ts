@@ -31,13 +31,13 @@ export class HotelRoomService implements IHotelRoomService {
     private readonly hotelRoomModel: ReturnModelType<typeof HotelRoomModel>,
   ) {}
 
-  async findById(id, isEnabled?) {
+  async findById(id) {
     return await this.hotelRoomModel.findById(id).exec();
   }
 
   async search(params): Promise<HotelRoom[]> {
     let { hotel } = params;
-    const { limit, offset, isEnabled } = params;
+    const { limit, offset } = params;
     const ObjectId = mongoose.Types.ObjectId;
     hotel = hotel ? ObjectId(hotel) : { $exists: true };
     return await this.hotelRoomModel

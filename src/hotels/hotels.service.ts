@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ReturnModelType } from '@typegoose/typegoose/lib/types';
 import { InjectModel } from 'nestjs-typegoose';
 import { HotelModel, HotelRoomModel } from './hotels.models';
-import type { Types } from 'mongoose';
 import { Hotel } from './hotel.dto';
-
-interface ID extends Types.ObjectId {}
 
 interface IHotelService {
   create(data: any): Promise<Hotel>;
