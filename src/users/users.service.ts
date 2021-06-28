@@ -1,35 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ReturnModelType } from '@typegoose/typegoose';
-import type { Types } from 'mongoose';
 import { InjectModel } from 'nestjs-typegoose';
 import { UserModel } from './users.model';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { mongoose } from '@typegoose/typegoose';
-
-interface ID extends Types.ObjectId {}
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  contactPhone: string;
-  role: string;
-}
-
-interface SearchUserParams {
-  limit: number;
-  offset: number;
-  email: string;
-  name: string;
-  contactPhone: string;
-}
-
-interface IUserService {
-  create(data: Partial<User>): Promise<User>;
-  findById(id: ID): Promise<User>;
-  findByEmail(email: string): Promise<User>;
-  findAll(params: SearchUserParams): Promise<User[]>;
-}
+import { IUserService } from './user.interfaces';
 
 // Поле role может принимать одно из следующих значений:
 // client
@@ -110,6 +85,7 @@ export class UsersService implements IUserService {
             email: 1,
             name: 1,
             contactPhone: 1,
+            passwordHash: 1,
           },
         },
       ])
