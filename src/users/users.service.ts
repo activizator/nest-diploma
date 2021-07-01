@@ -86,6 +86,7 @@ export class UsersService implements IUserService {
             name: 1,
             contactPhone: 1,
             passwordHash: 1,
+            role: 1,
           },
         },
       ])

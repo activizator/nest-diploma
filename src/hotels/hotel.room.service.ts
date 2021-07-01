@@ -31,8 +31,31 @@ export class HotelRoomService implements IHotelRoomService {
     private readonly hotelRoomModel: ReturnModelType<typeof HotelRoomModel>,
   ) {}
 
-  async findById(id) {
-    return await this.hotelRoomModel.findById(id).exec();
+  async findById(id): Promise<HotelRoom> {
+    const ObjectId = mongoose.Types.ObjectId;
+    return await this.hotelRoomModel
+      .aggregate([
+        { $match: { _id: ObjectId(id) } },
+        {
+          $lookup: {
+            from: 'Hotel',
+            localField: 'hotel',
+            foreignField: '_id',
+            as: 'result',
+          },
+        },
+        { $unwind: '$result' },
+        {
+          $project: {
+            _id: 0,
+            id: '$_id',
+            title: '$title',
+            images: '$images',
+            hotel: { id: '$result._id', title: '$result.title' },
+          },
+        },
+      ])
+      .exec();
   }
 
   async search(params): Promise<HotelRoom[]> {

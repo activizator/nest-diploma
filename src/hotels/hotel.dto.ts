@@ -1,5 +1,7 @@
+import type { ObjectId } from 'mongoose';
+
 export interface Hotel {
-  id: string;
-  title: string;
-  description: string;
+  id?: ObjectId;
+  title?: string;
+  description?: string;
 }

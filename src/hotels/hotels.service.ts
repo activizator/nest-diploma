@@ -19,15 +19,15 @@ export class HotelsService implements IHotelService {
     private readonly hotelRoomModel: ReturnModelType<typeof HotelRoomModel>,
   ) {}
 
-  async create(data) {
+  async create(data): Promise<Hotel> {
     const { title, description } = data;
     const createdHotel = new this.hotelModel({ title, description });
     const answer = await createdHotel.save();
-    return {
-      id: answer._id,
-      title: answer.title,
-      description: answer.description,
-    };
+    const ans = await this.hotelModel.aggregate([
+      { $match: { _id: answer._id } },
+      { $project: { _id: 0, id: '$_id', title: 1, description: 1 } },
+    ]);
+    return ans[0];
   }
 
   async search(params) {
@@ -41,7 +41,7 @@ export class HotelsService implements IHotelService {
       .exec();
   }
 
-  async update(data) {
+  async update(data): Promise<Hotel> {
     const { id, hotel } = data;
     const { title, description } = hotel;
     const answer = await this.hotelModel.findOneAndUpdate(
@@ -52,10 +52,10 @@ export class HotelsService implements IHotelService {
       },
       { upsert: true, useFindAndModify: false },
     );
-    return {
-      id: answer._id,
-      title: answer.title,
-      description: answer.description,
-    };
+    const ans = await this.hotelModel.aggregate([
+      { $match: { _id: answer._id } },
+      { $project: { _id: 0, id: '$_id', title: 1, description: 1 } },
+    ]);
+    return ans[0];
   }
 }
