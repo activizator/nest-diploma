@@ -6,12 +6,6 @@ import { genSaltSync, hashSync } from 'bcryptjs';
 import { mongoose } from '@typegoose/typegoose';
 import { IUserService } from './user.interfaces';
 
-// Поле role может принимать одно из следующих значений:
-// client
-// admin
-// manager
-// При поиске IUserService.findAll() поля email, name и contactPhone должны проверяться на частичное совпадение.
-
 @Injectable()
 export class UsersService implements IUserService {
   constructor(
