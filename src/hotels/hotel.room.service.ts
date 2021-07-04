@@ -3,24 +3,8 @@ import { mongoose } from '@typegoose/typegoose';
 import { ReturnModelType } from '@typegoose/typegoose/lib/types';
 import { InjectModel } from 'nestjs-typegoose';
 import { HotelModel, HotelRoomModel } from './hotels.models';
-import type { Types } from 'mongoose';
 import { HotelRoom } from './hotel.room.dto';
-
-interface ID extends Types.ObjectId {}
-
-interface SearchRoomsParams {
-  hotel: string;
-  limit: number;
-  offset: number;
-  isEnabled?: true;
-}
-
-interface IHotelRoomService {
-  create(data: Partial<HotelRoom>): Promise<HotelRoom>;
-  findById(id: ID, isEnabled?: true): Promise<HotelRoom>;
-  search(params: SearchRoomsParams): Promise<HotelRoom[]>;
-  update(id: ID, data: Partial<HotelRoom>): Promise<HotelRoom>;
-}
+import { IHotelRoomService } from './hotels.interfaces';
 
 @Injectable()
 export class HotelRoomService implements IHotelRoomService {
@@ -33,7 +17,7 @@ export class HotelRoomService implements IHotelRoomService {
 
   async findById(id): Promise<HotelRoom> {
     const ObjectId = mongoose.Types.ObjectId;
-    return await this.hotelRoomModel
+    const ans = await this.hotelRoomModel
       .aggregate([
         { $match: { _id: ObjectId(id) } },
         {
@@ -56,6 +40,7 @@ export class HotelRoomService implements IHotelRoomService {
         },
       ])
       .exec();
+    return ans[0];
   }
 
   async search(params): Promise<HotelRoom[]> {

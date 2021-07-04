@@ -3,12 +3,7 @@ import { ReturnModelType } from '@typegoose/typegoose/lib/types';
 import { InjectModel } from 'nestjs-typegoose';
 import { HotelModel, HotelRoomModel } from './hotels.models';
 import { Hotel } from './hotel.dto';
-
-interface IHotelService {
-  create(data: any): Promise<Hotel>;
-  update(data: any): Promise<Hotel>;
-  search(params: Pick<Hotel, 'title'>): Promise<Hotel[]>;
-}
+import { IHotelService } from './hotels.interfaces';
 
 @Injectable()
 export class HotelsService implements IHotelService {

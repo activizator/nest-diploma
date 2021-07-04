@@ -8,33 +8,16 @@ import {
   Put,
   UseInterceptors,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { HotelsService } from './hotels.service';
 import type { Types } from 'mongoose';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { HotelRoomService } from './hotel.room.service';
-
-// Ограничения
-// Если пользователь не аутентифицирован или его роль client, то при поиске всегда должен использоваться флаг isEnabled: true.
-
-const imageFileFilter = (req, file, callback) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-    callback(new Error('Only image files are allowed!'), false);
-  }
-  callback(null, true);
-};
-
-const editFileName = (req, file, callback) => {
-  const name = file.originalname.split('.')[0];
-  const fileExtName = extname(file.originalname);
-  const randomName = Array(4)
-    .fill(null)
-    .map(() => Math.round(Math.random() * 16).toString(16))
-    .join('');
-  callback(null, `${name}-${randomName}${fileExtName}`);
-};
+import { editFileName, imageFileFilter } from 'src/config/img.upload.config';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { AdminRoleGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('/api/')
 export class HotelsController {
@@ -65,38 +48,26 @@ export class HotelsController {
     return await this.hotelRoomService.findById(params.id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminRoleGuard)
   @Post('/admin/hotels/')
-  //   Доступ
-  // Доступно только аутентифицированным пользователям с ролью admin.
-
-  // Ошибки
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не admin
   async addTheHotel(@Body() body: { title: string; description: string }) {
     const { title, description } = body;
     return await this.hotelsService.create({ title, description });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminRoleGuard)
   @Get('/admin/hotels/')
-  //   Доступ
-  // Доступно только аутентифицированным пользователям с ролью admin.
-
-  // Ошибки
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не admin
   async findAllHotels(@Query('limit') limit?, @Query('offset') offset?) {
     limit = limit ? parseInt(limit) : 100;
     offset = offset ? parseInt(offset) : 0;
     return await this.hotelsService.search({ limit, offset });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminRoleGuard)
   @Put('/admin/hotels/:id')
-  //   Доступ
-  // Доступно только аутентифицированным пользователям с ролью admin.
-
-  // Ошибки
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не admin
   async changeTheHotelDesc(
     @Param() params,
     @Body() hotel: { title: string; description: string },
@@ -105,6 +76,8 @@ export class HotelsController {
     return await this.hotelsService.update({ id, hotel });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminRoleGuard)
   @Post('/admin/hotel-rooms/')
   @UseInterceptors(
     FilesInterceptor('images', 20, {
@@ -132,6 +105,8 @@ export class HotelsController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(AdminRoleGuard)
   @Put('/admin/hotel-rooms/:id')
   @UseInterceptors(
     FilesInterceptor('images', 20, {
