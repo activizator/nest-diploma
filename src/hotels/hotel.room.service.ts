@@ -2,15 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { mongoose } from '@typegoose/typegoose';
 import { ReturnModelType } from '@typegoose/typegoose/lib/types';
 import { InjectModel } from 'nestjs-typegoose';
-import { HotelModel, HotelRoomModel } from './hotels.models';
+import { HotelRoomModel } from './hotels.models';
 import { HotelRoom } from './hotel.room.dto';
 import { IHotelRoomService } from './hotels.interfaces';
 
 @Injectable()
 export class HotelRoomService implements IHotelRoomService {
   constructor(
-    @InjectModel(HotelModel)
-    private readonly hotelModel: ReturnModelType<typeof HotelModel>,
     @InjectModel(HotelRoomModel)
     private readonly hotelRoomModel: ReturnModelType<typeof HotelRoomModel>,
   ) {}
@@ -34,8 +32,13 @@ export class HotelRoomService implements IHotelRoomService {
             _id: 0,
             id: '$_id',
             title: '$title',
+            description: '$description',
             images: '$images',
-            hotel: { id: '$result._id', title: '$result.title' },
+            hotel: {
+              id: '$result._id',
+              title: '$result.title',
+              description: '$result.description',
+            },
           },
         },
       ])

@@ -36,5 +36,6 @@ import { getJWTConfig } from 'src/config/jwt.config';
     }),
     PassportModule,
   ],
+  exports: [HotelsService, HotelRoomService],
 })
 export class HotelsModule {}

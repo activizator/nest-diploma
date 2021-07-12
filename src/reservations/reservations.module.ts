@@ -3,11 +3,17 @@ import { ReservationsService } from './reservations.service';
 import { ReservationsController } from './reservations.controller';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { ReservationModel } from './reservations.model';
+import { HotelsModule } from 'src/hotels/hotels.module';
+import { UsersModule } from 'src/users/users.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   providers: [ReservationsService],
   controllers: [ReservationsController],
   imports: [
+    UsersModule,
+    AuthModule,
+    HotelsModule,
     TypegooseModule.forFeature([
       {
         typegooseClass: ReservationModel,

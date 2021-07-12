@@ -29,5 +29,6 @@ import { PassportModule } from '@nestjs/passport';
     }),
     PassportModule,
   ],
+  exports: [UsersService],
 })
 export class UsersModule {}

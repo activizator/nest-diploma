@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ReturnModelType } from '@typegoose/typegoose/lib/types';
 import { InjectModel } from 'nestjs-typegoose';
-import { HotelModel, HotelRoomModel } from './hotels.models';
+import { HotelModel } from './hotels.models';
 import { Hotel } from './hotel.dto';
 import { IHotelService } from './hotels.interfaces';
 
@@ -10,8 +10,6 @@ export class HotelsService implements IHotelService {
   constructor(
     @InjectModel(HotelModel)
     private readonly hotelModel: ReturnModelType<typeof HotelModel>,
-    @InjectModel(HotelRoomModel)
-    private readonly hotelRoomModel: ReturnModelType<typeof HotelRoomModel>,
   ) {}
 
   async create(data): Promise<Hotel> {

@@ -1,7 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ReturnModelType } from '@typegoose/typegoose';
-import { InjectModel } from 'nestjs-typegoose';
-import { UserModel } from 'src/users/users.model';
 import { UsersService } from 'src/users/users.service';
 import { compareSync } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
@@ -9,8 +6,6 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(UserModel)
-    private readonly userModel: ReturnModelType<typeof UserModel>,
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
