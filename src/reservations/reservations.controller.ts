@@ -7,10 +7,12 @@ import {
   Headers,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { ClientRoleGuard, ManagerRoleGuard } from 'src/auth/guards/roles.guard';
 import { UIdService } from 'src/auth/uid.service';
 import { UsersService } from 'src/users/users.service';
-import { ID } from './reservations.interfaces';
 import { ReservationsService } from './reservations.service';
 
 @Controller('/api/')
@@ -21,13 +23,11 @@ export class ReservationsController {
     private readonly userService: UsersService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(ClientRoleGuard)
   @Post('/client/reservations')
   async createClientReservation(@Body() body, @Headers() headers) {
     // Доступ
-    // Доступно только аутентифицированным пользователям с ролью client.
-    // Ошибки
-    // 401 - если пользователь не аутентифицирован
-    // 403 - если роль пользователя не client
     // 400 - если номер с указанным ID не существует или отключен
     const user = await this.uIdService.getUser(headers.authorization);
     const u = await this.userService.findByEmail(user.email);
@@ -41,17 +41,14 @@ export class ReservationsController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(ClientRoleGuard)
   @Get('/client/reservations')
   async getClientReservation(
     @Headers() headers,
     @Query('dateStart') dateStart?,
     @Query('dateEnd') dateEnd?,
   ) {
-    // Доступ
-    // Доступно только аутентифицированным пользователям с ролью client.
-    // Ошибки
-    // 401 - если пользователь не аутентифицирован
-    // 403 - если роль пользователя не client
     const user = await this.uIdService.getUser(headers.authorization);
     const u = await this.userService.findByEmail(user.email);
     const userId = u.id;
@@ -59,8 +56,12 @@ export class ReservationsController {
     return await this.reservationsService.getReservations(filter);
   }
 
-  // @Delete('/client/reservations/:id')
-  // async removeClientReservation(@Param() params) {
-  //   return await this.reservationsService.removeReservation(params.id);
-  // }
+  //   Ошибки
+  // 400 - если бронь с указанным ID для пользователя с указанным ID не существует
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(ManagerRoleGuard)
+  @Delete('/client/reservations/:id')
+  async removeClientReservation(@Param() params) {
+    return await this.reservationsService.removeReservation(params.id);
+  }
 }

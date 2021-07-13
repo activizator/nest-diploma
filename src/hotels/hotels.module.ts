@@ -9,11 +9,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { getJWTConfig } from 'src/config/jwt.config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   providers: [HotelsService, HotelRoomService, JwtStrategy],
   controllers: [HotelsController],
   imports: [
+    AuthModule,
     TypegooseModule.forFeature([
       {
         typegooseClass: HotelModel,

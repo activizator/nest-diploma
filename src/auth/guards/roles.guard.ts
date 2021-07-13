@@ -5,33 +5,19 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
+import { UIdService } from '../uid.service';
 
 @Injectable()
 export class AdminRoleGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly uIdService: UIdService) {}
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     const headers = request.headers;
     const auth = headers.authorization;
-    if (!auth) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNAUTHORIZED,
-          message: 'Unauthorized',
-        },
-        401,
-      );
-    }
-    const jwt = auth.replace('Bearer ', '');
-    const payload = this.jwtService.decode(jwt, { json: true }) as {
-      email: string;
-      name: string;
-      role: string;
-    };
+    const payload = this.uIdService.getUser(auth);
     const role = payload.role;
     if (role !== 'admin') {
       throw new HttpException(
@@ -48,28 +34,14 @@ export class AdminRoleGuard implements CanActivate {
 
 @Injectable()
 export class ManagerRoleGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly uIdService: UIdService) {}
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     const headers = request.headers;
     const auth = headers.authorization;
-    if (!auth) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNAUTHORIZED,
-          message: 'Unauthorized',
-        },
-        401,
-      );
-    }
-    const jwt = auth.replace('Bearer ', '');
-    const payload = this.jwtService.decode(jwt, { json: true }) as {
-      email: string;
-      name: string;
-      role: string;
-    };
+    const payload = this.uIdService.getUser(auth);
     const role = payload.role;
     if (role !== 'manager') {
       throw new HttpException(
@@ -81,5 +53,29 @@ export class ManagerRoleGuard implements CanActivate {
       );
     }
     return role == 'manager';
+  }
+}
+
+@Injectable()
+export class ClientRoleGuard implements CanActivate {
+  constructor(private readonly uIdService: UIdService) {}
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const headers = request.headers;
+    const auth = headers.authorization;
+    const payload = this.uIdService.getUser(auth);
+    const role = payload.role;
+    if (role !== 'client') {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Доступ с данной ролью запрещен',
+        },
+        403,
+      );
+    }
+    return role == 'client';
   }
 }

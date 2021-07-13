@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypegooseModule } from 'nestjs-typegoose';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -8,11 +8,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { getJWTConfig } from 'src/config/jwt.config';
 import { PassportModule } from '@nestjs/passport';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [UsersController],
   providers: [UsersService, JwtStrategy],
   imports: [
+    forwardRef(() => AuthModule),
     TypegooseModule.forFeature([
       {
         typegooseClass: UserModel,

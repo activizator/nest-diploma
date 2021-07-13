@@ -1,6 +1,5 @@
 import type { Types } from 'mongoose';
 import { Reservation, ReservationDto } from './reservations.dto';
-import { ReservationModel } from './reservations.model';
 
 export interface ID extends Types.ObjectId {}
 
@@ -12,7 +11,7 @@ export interface ReservationSearchOptions {
 
 export interface IReservation {
   addReservation(data: ReservationDto): Promise<Reservation>;
-  // removeReservation(id: ID): Promise<void>;
+  removeReservation(id: ID): Promise<void>;
   getReservations(
     filter: ReservationSearchOptions,
   ): Promise<Array<Reservation>>;

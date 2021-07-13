@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ReturnModelType } from '@typegoose/typegoose';
+import { mongoose, ReturnModelType } from '@typegoose/typegoose';
 import { InjectModel } from 'nestjs-typegoose';
 import { HotelRoomService } from 'src/hotels/hotel.room.service';
 import { Reservation, ReservationDto } from './reservations.dto';
@@ -87,23 +87,68 @@ export class ReservationsService implements IReservation {
     filter: ReservationSearchOptions,
   ): Promise<Array<Reservation>> {
     const { user, dateStart, dateEnd } = filter;
-    // заглушка
-    return await [
+    const ObjectId = mongoose.Types.ObjectId;
+    const dS = !dateStart ? { $exists: true } : { $gte: new Date(dateStart) };
+    const dE = !dateEnd ? { $exists: true } : { $lte: new Date(dateEnd) };
+    const result = await this.reservationModel.aggregate([
       {
-        startDate: '2021-07-20',
-        endDate: '2021-07-24',
-        hotelRoom: {
-          title: 'room.title',
-          description: 'room.description',
-          images: ['room.images'],
-        },
-        hotel: {
-          title: 'room.hotel.title',
-          description: 'room.hotel.description',
+        $match: {
+          userId: ObjectId(user),
+          dateStart: dS,
+          dateEnd: dE,
         },
       },
-    ];
+      {
+        $lookup: {
+          from: 'Hotel',
+          localField: 'hotelId',
+          foreignField: '_id',
+          as: 'hotel',
+        },
+      },
+      {
+        $unwind: {
+          path: '$hotel',
+        },
+      },
+      {
+        $lookup: {
+          localField: 'roomId',
+          from: 'HotelRoom',
+          foreignField: '_id',
+          as: 'room',
+        },
+      },
+      {
+        $unwind: {
+          path: '$room',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          startDate: '$dateStart',
+          endDate: '$dateEnd',
+          hotelRoom: {
+            title: '$room.title',
+            description: '$room.description',
+            images: '$room.images',
+          },
+          hotel: {
+            title: '$hotel.title',
+            description: '$hotel.description',
+          },
+        },
+      },
+    ]);
+    return result;
   }
 
-  // async removeReservation(id: ID): Promise<void> {}
+  // 401 - если пользователь не аутентифицирован
+  // 403 - если роль пользователя не client
+  // 403 - если id текущего пользователя не совпадает с id пользователя в брони
+  // 400 - если бронь с указанным ID не существует
+  async removeReservation(id: ID): Promise<void> {
+    await this.reservationModel.deleteOne({ _id: id });
+  }
 }
