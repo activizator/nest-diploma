@@ -56,12 +56,38 @@ export class ReservationsController {
     return await this.reservationsService.getReservations(filter);
   }
 
-  //   Ошибки
-  // 400 - если бронь с указанным ID для пользователя с указанным ID не существует
   @UseGuards(JwtAuthGuard)
   @UseGuards(ManagerRoleGuard)
+  @Get('/manager/reservations/:userId')
+  async managerGetClientReservation(@Param() params) {
+    const userId = params.userId;
+    const filter = { user: userId, dateStart: undefined, dateEnd: undefined };
+    return await this.reservationsService.getReservations(filter);
+  }
+
+  //   Ошибки
+  // 400 - если бронь с указанным ID для пользователя с указанным ID не существует
+  // 401 - если пользователь не аутентифицирован
+  // 403 - если роль пользователя не client
+  // 403 - если id текущего пользователя не совпадает с id пользователя в брони
+  // 400 - если бронь с указанным ID не существует
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(ClientRoleGuard)
   @Delete('/client/reservations/:id')
-  async removeClientReservation(@Param() params) {
-    return await this.reservationsService.removeReservation(params.id);
+  async removeClientReservation(@Param() params, @Headers() headers) {
+    const user = await this.uIdService.getUser(headers.authorization);
+    const u = await this.userService.findByEmail(user.email);
+    const userId = u.id;
+    return await this.reservationsService.removeReservation(userId, params.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(ManagerRoleGuard)
+  @Delete('/manager/reservations/:userId/:reservationId')
+  async managerRemoveClientReservation(@Param() params) {
+    return await this.reservationsService.removeReservation(
+      params.userId,
+      params.reservationId,
+    );
   }
 }

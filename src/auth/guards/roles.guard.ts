@@ -14,12 +14,14 @@ export class AdminRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const headers = request.headers;
-    const auth = headers.authorization;
-    const payload = this.uIdService.getUser(auth);
-    const role = payload.role;
-    if (role !== 'admin') {
+    try {
+      const request = context.switchToHttp().getRequest();
+      const headers = request.headers;
+      const auth = headers.authorization;
+      const payload = this.uIdService.getUser(auth);
+      const role = payload.role;
+      return role == 'admin';
+    } catch {
       throw new HttpException(
         {
           status: HttpStatus.FORBIDDEN,
@@ -28,7 +30,6 @@ export class AdminRoleGuard implements CanActivate {
         403,
       );
     }
-    return role == 'admin';
   }
 }
 
@@ -38,12 +39,14 @@ export class ManagerRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const headers = request.headers;
-    const auth = headers.authorization;
-    const payload = this.uIdService.getUser(auth);
-    const role = payload.role;
-    if (role !== 'manager') {
+    try {
+      const request = context.switchToHttp().getRequest();
+      const headers = request.headers;
+      const auth = headers.authorization;
+      const payload = this.uIdService.getUser(auth);
+      const role = payload.role;
+      return role == 'manager';
+    } catch {
       throw new HttpException(
         {
           status: HttpStatus.FORBIDDEN,
@@ -52,7 +55,6 @@ export class ManagerRoleGuard implements CanActivate {
         403,
       );
     }
-    return role == 'manager';
   }
 }
 
@@ -62,12 +64,14 @@ export class ClientRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const headers = request.headers;
-    const auth = headers.authorization;
-    const payload = this.uIdService.getUser(auth);
-    const role = payload.role;
-    if (role !== 'client') {
+    try {
+      const request = context.switchToHttp().getRequest();
+      const headers = request.headers;
+      const auth = headers.authorization;
+      const payload = this.uIdService.getUser(auth);
+      const role = payload.role;
+      return role == 'client';
+    } catch {
       throw new HttpException(
         {
           status: HttpStatus.FORBIDDEN,
@@ -76,6 +80,5 @@ export class ClientRoleGuard implements CanActivate {
         403,
       );
     }
-    return role == 'client';
   }
 }

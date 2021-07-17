@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { mongoose, ReturnModelType } from '@typegoose/typegoose';
 import { InjectModel } from 'nestjs-typegoose';
 import { HotelRoomService } from 'src/hotels/hotel.room.service';
@@ -144,11 +144,17 @@ export class ReservationsService implements IReservation {
     return result;
   }
 
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не client
-  // 403 - если id текущего пользователя не совпадает с id пользователя в брони
-  // 400 - если бронь с указанным ID не существует
-  async removeReservation(id: ID): Promise<void> {
-    await this.reservationModel.deleteOne({ _id: id });
+  async removeReservation(userId: ID, reservationId: ID): Promise<void> {
+    try {
+      await this.reservationModel.deleteOne({ _id: reservationId, userId });
+    } catch {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'Информация не найдена',
+        },
+        400,
+      );
+    }
   }
 }

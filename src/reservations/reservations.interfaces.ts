@@ -11,7 +11,7 @@ export interface ReservationSearchOptions {
 
 export interface IReservation {
   addReservation(data: ReservationDto): Promise<Reservation>;
-  removeReservation(id: ID): Promise<void>;
+  removeReservation(userId: ID, reservationId: ID): Promise<void>;
   getReservations(
     filter: ReservationSearchOptions,
   ): Promise<Array<Reservation>>;
