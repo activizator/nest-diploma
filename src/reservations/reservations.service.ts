@@ -9,7 +9,6 @@ import {
   ReservationSearchOptions,
 } from './reservations.interfaces';
 import { ReservationModel } from './reservations.model';
-// Метод IReservation.addReservation должен проверять доступен ли номер на заданную дату
 
 @Injectable()
 export class ReservationsService implements IReservation {
@@ -19,68 +18,79 @@ export class ReservationsService implements IReservation {
     private readonly hotelRoomService: HotelRoomService,
   ) {}
 
+  // Метод IReservation.addReservation должен проверять доступен ли номер на заданную дату
   async addReservation(data: ReservationDto): Promise<Reservation> {
     const { hotelRoom, startDate, endDate, user } = data;
-    const room = await this.hotelRoomService.findById(hotelRoom);
-    const createdReservation = new this.reservationModel({
-      userId: user,
-      hotelId: room.hotel.id,
-      roomId: hotelRoom,
-      dateStart: startDate,
-      dateEnd: endDate,
-    });
-    const answer = await createdReservation.save();
+    try {
+      const room = await this.hotelRoomService.findById(hotelRoom);
+      const createdReservation = new this.reservationModel({
+        userId: user,
+        hotelId: room.hotel.id,
+        roomId: hotelRoom,
+        dateStart: startDate,
+        dateEnd: endDate,
+      });
+      const answer = await createdReservation.save();
 
-    const result = await this.reservationModel.aggregate([
-      {
-        $match: {
-          _id: answer._id,
-        },
-      },
-      {
-        $lookup: {
-          from: 'Hotel',
-          localField: 'hotelId',
-          foreignField: '_id',
-          as: 'hotel',
-        },
-      },
-      {
-        $unwind: {
-          path: '$hotel',
-        },
-      },
-      {
-        $lookup: {
-          localField: 'roomId',
-          from: 'HotelRoom',
-          foreignField: '_id',
-          as: 'room',
-        },
-      },
-      {
-        $unwind: {
-          path: '$room',
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          startDate: '$dateStart',
-          endDate: '$dateEnd',
-          hotelRoom: {
-            title: '$room.title',
-            description: '$room.description',
-            images: '$room.images',
-          },
-          hotel: {
-            title: '$hotel.title',
-            description: '$hotel.description',
+      const result = await this.reservationModel.aggregate([
+        {
+          $match: {
+            _id: answer._id,
           },
         },
-      },
-    ]);
-    return result;
+        {
+          $lookup: {
+            from: 'Hotel',
+            localField: 'hotelId',
+            foreignField: '_id',
+            as: 'hotel',
+          },
+        },
+        {
+          $unwind: {
+            path: '$hotel',
+          },
+        },
+        {
+          $lookup: {
+            localField: 'roomId',
+            from: 'HotelRoom',
+            foreignField: '_id',
+            as: 'room',
+          },
+        },
+        {
+          $unwind: {
+            path: '$room',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            startDate: '$dateStart',
+            endDate: '$dateEnd',
+            hotelRoom: {
+              title: '$room.title',
+              description: '$room.description',
+              images: '$room.images',
+            },
+            hotel: {
+              title: '$hotel.title',
+              description: '$hotel.description',
+            },
+          },
+        },
+      ]);
+      return result;
+    } catch {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'Номер не найден',
+        },
+        400,
+      );
+    }
   }
 
   async getReservations(

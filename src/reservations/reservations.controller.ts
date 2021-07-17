@@ -27,8 +27,6 @@ export class ReservationsController {
   @UseGuards(ClientRoleGuard)
   @Post('/client/reservations')
   async createClientReservation(@Body() body, @Headers() headers) {
-    // Доступ
-    // 400 - если номер с указанным ID не существует или отключен
     const user = await this.uIdService.getUser(headers.authorization);
     const u = await this.userService.findByEmail(user.email);
     const userId = u.id;
@@ -65,12 +63,6 @@ export class ReservationsController {
     return await this.reservationsService.getReservations(filter);
   }
 
-  //   Ошибки
-  // 400 - если бронь с указанным ID для пользователя с указанным ID не существует
-  // 401 - если пользователь не аутентифицирован
-  // 403 - если роль пользователя не client
-  // 403 - если id текущего пользователя не совпадает с id пользователя в брони
-  // 400 - если бронь с указанным ID не существует
   @UseGuards(JwtAuthGuard)
   @UseGuards(ClientRoleGuard)
   @Delete('/client/reservations/:id')
