@@ -6,9 +6,10 @@ import { ReservationModel } from './reservations.model';
 import { HotelsModule } from 'src/hotels/hotels.module';
 import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { CheckDates } from './check.dates';
 
 @Module({
-  providers: [ReservationsService],
+  providers: [ReservationsService, CheckDates],
   controllers: [ReservationsController],
   imports: [
     UsersModule,

@@ -19,6 +19,7 @@ import { editFileName, imageFileFilter } from 'src/config/img.upload.config';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { AdminRoleGuard } from 'src/auth/guards/roles.guard';
 
+// Если пользователь не аутентифицирован или его роль client, то при поиске всегда должен использоваться флаг isEnabled: true.
 @Controller('/api/')
 export class HotelsController {
   constructor(
@@ -94,7 +95,7 @@ export class HotelsController {
   ) {
     const { title, description, hotelId } = body;
     const images = files.map((file) => file.path);
-    const isEnabled = true; // Если пользователь не аутентифицирован или его роль client, то при поиске всегда должен использоваться флаг isEnabled: true.
+    const isEnabled = true;
     const hotel = hotelId;
     return await this.hotelRoomService.create({
       title,

@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { mongoose, ReturnModelType } from '@typegoose/typegoose';
 import { InjectModel } from 'nestjs-typegoose';
 import { HotelRoomService } from 'src/hotels/hotel.room.service';
+import { CheckDates } from './check.dates';
 import { Reservation, ReservationDto } from './reservations.dto';
 import {
   ID,
@@ -16,13 +17,33 @@ export class ReservationsService implements IReservation {
     @InjectModel(ReservationModel)
     private readonly reservationModel: ReturnModelType<typeof ReservationModel>,
     private readonly hotelRoomService: HotelRoomService,
+    private readonly checkDates: CheckDates,
   ) {}
 
-  // Метод IReservation.addReservation должен проверять доступен ли номер на заданную дату
   async addReservation(data: ReservationDto): Promise<Reservation> {
     const { hotelRoom, startDate, endDate, user } = data;
+    const ObjectId = mongoose.Types.ObjectId;
     try {
       const room = await this.hotelRoomService.findById(hotelRoom);
+      const reservations = await this.reservationModel
+        .find({
+          roomId: ObjectId(hotelRoom),
+        })
+        .exec();
+
+      reservations.array.forEach((element) => {
+        const chD1 = this.checkDates.check(startDate, element);
+        const chD2 = this.checkDates.check(endDate, element);
+        if (chD1 !== true || chD2 !== true) {
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+            },
+            400,
+          );
+        }
+      });
+
       const createdReservation = new this.reservationModel({
         userId: user,
         hotelId: room.hotel.id,
@@ -86,7 +107,7 @@ export class ReservationsService implements IReservation {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
-          error: 'Номер не найден',
+          error: 'Номер не найден или занят в выбранные даты',
         },
         400,
       );
