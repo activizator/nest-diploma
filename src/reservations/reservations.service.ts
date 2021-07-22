@@ -31,17 +31,9 @@ export class ReservationsService implements IReservation {
         })
         .exec();
 
-      reservations.array.forEach((element) => {
-        const chD1 = this.checkDates.check(startDate, element);
-        const chD2 = this.checkDates.check(endDate, element);
-        if (chD1 !== true || chD2 !== true) {
-          throw new HttpException(
-            {
-              status: HttpStatus.NOT_FOUND,
-            },
-            400,
-          );
-        }
+      reservations.forEach((element) => {
+        this.checkDates.check(startDate, element);
+        this.checkDates.check(endDate, element);
       });
 
       const createdReservation = new this.reservationModel({

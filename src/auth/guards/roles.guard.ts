@@ -82,3 +82,28 @@ export class ClientRoleGuard implements CanActivate {
     }
   }
 }
+
+@Injectable()
+export class ManagerOrClientRoleGuard implements CanActivate {
+  constructor(private readonly uIdService: UIdService) {}
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    try {
+      const request = context.switchToHttp().getRequest();
+      const headers = request.headers;
+      const auth = headers.authorization;
+      const payload = this.uIdService.getUser(auth);
+      const role = payload.role;
+      return role == ('client' || 'manager');
+    } catch {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Доступ с данной ролью запрещен',
+        },
+        403,
+      );
+    }
+  }
+}
