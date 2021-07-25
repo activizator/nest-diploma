@@ -36,6 +36,22 @@ export class ChatController {
     const id = u.id;
     return await this.chatService.createSupportRequest({ id, text });
   }
+  // Доступно только пользователям с ролью manager и пользователю с ролью client, который создал обращение.
+  @UseGuards(JwtAuthGuard)
+  @UseGuards(ManagerOrClientRoleGuard)
+  @Post('/common/support-requests/:id/messages')
+  async sendMessage(
+    @Headers() headers,
+    @Body() body: { text: string },
+    @Param() params,
+  ) {
+    const user = await this.uIdService.getUser(headers.authorization);
+    const u = await this.userService.findByEmail(user.email);
+    const userId = u.id;
+    const { text } = body;
+    const id = params.id;
+    return await this.chatService.sendMessage({ id, userId, text });
+  }
 
   @UseGuards(JwtAuthGuard)
   @UseGuards(ClientRoleGuard)
@@ -48,10 +64,11 @@ export class ChatController {
   ) {
     limit = limit ? parseInt(limit) : 100;
     offset = offset ? parseInt(offset) : 0;
+    if (isActive === undefined) isActive = true;
     const user = await this.uIdService.getUser(headers.authorization);
     const u = await this.userService.findByEmail(user.email);
     const userId = u.id;
-    return await this.chatService.getMessages({
+    return await this.chatService.findSupportRequests({
       userId,
       isActive,
       limit,
@@ -69,8 +86,9 @@ export class ChatController {
   ) {
     limit = limit ? parseInt(limit) : 100;
     offset = offset ? parseInt(offset) : 0;
-    const userId = { $exists: true };
-    return await this.chatService.getMessages({
+    if (isActive === undefined) isActive = true;
+    const userId = 'forManagerAny';
+    return await this.chatService.findSupportRequests({
       userId,
       isActive,
       limit,
@@ -81,25 +99,28 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @UseGuards(ManagerOrClientRoleGuard)
   @Get('/common/support-requests/:id/messages')
-  async getCorMSupportRequests(@Param() params) {
-    const userId = params.id;
-    return await this.chatService.findSupportRequests({
-      userId,
-      isActive: true,
-      limit: { $exists: true },
-      offset: { $exists: true },
+  async getCorMSupportRequestsMesseges(
+    @Headers() headers,
+    @Param() params,
+    @Query('isActive') isActive?,
+    @Query('limit') limit?,
+    @Query('offset') offset?,
+  ) {
+    const id = params.id;
+    if (isActive === undefined) isActive = true;
+    limit = limit ? parseInt(limit) : 100;
+    offset = offset ? parseInt(offset) : 0;
+    const user = await this.uIdService.getUser(headers.authorization);
+    const u = await this.userService.findByEmail(user.email);
+    return await this.chatService.getMessages({
+      id,
+      isActive,
+      limit,
+      offset,
+      user: u,
     });
   }
-
-  @UseGuards(JwtAuthGuard)
-  @UseGuards(ManagerOrClientRoleGuard)
-  @Post('/common/support-requests/:id/messages')
-  async sendMessage(@Body() body: { text: string }, @Param() params) {
-    const { text } = body;
-    const id = params.id;
-    return await this.chatService.sendMessage({ id, text });
-  }
-
+  // Доступно только пользователям с ролью manager и пользователю с ролью client, который создал обращение.
   @UseGuards(JwtAuthGuard)
   @UseGuards(ManagerOrClientRoleGuard)
   @Post('/common/support-requests/:id/messages/read')

@@ -8,7 +8,7 @@ export class SupportRequestModel extends TimeStamps {
   @prop({ required: true, ref: UserModel })
   user: Ref<UserModel>;
 
-  @prop({ type: () => [String] })
+  @prop({ type: () => [Object] })
   messages: Message[];
 
   @prop({ required: true, default: true })
@@ -22,6 +22,6 @@ export class MessageModel extends Base {
   text: string;
   @prop({ required: true })
   sentAt: Date;
-  @prop({ required: true })
+  @prop()
   readAt: Date;
 }

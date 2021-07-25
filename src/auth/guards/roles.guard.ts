@@ -95,7 +95,11 @@ export class ManagerOrClientRoleGuard implements CanActivate {
       const auth = headers.authorization;
       const payload = this.uIdService.getUser(auth);
       const role = payload.role;
-      return role == ('client' || 'manager');
+      if (role == 'client' || role == 'manager') {
+        return true;
+      } else {
+        return false;
+      }
     } catch {
       throw new HttpException(
         {
