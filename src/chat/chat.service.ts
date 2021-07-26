@@ -246,5 +246,35 @@ export class ChatService {
     }
   }
 
-  async markMessagesAsRead({ id, createdBefore }) {}
+  async markMessagesAsRead({ id, createdBefore }) {
+    const ObjectId = mongoose.Types.ObjectId;
+    try {
+      const answer = await this.supportRequestModel
+        .find({
+          _id: ObjectId(id),
+        })
+        .exec();
+      let messages = answer[0].messages;
+      messages = messages.map((mess) => mess.id);
+      await this.messageModel.updateMany(
+        {
+          _id: { $in: messages },
+          readAt: { $exists: false },
+        },
+        { readAt: createdBefore },
+      );
+      return {
+        success: true,
+      };
+    } catch {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error:
+            'Запрос в службу поддержки с данным id отсутствует для данного пользователя',
+        },
+        400,
+      );
+    }
+  }
 }
