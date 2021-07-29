@@ -19,6 +19,7 @@ export class UIdService {
       email: string;
       name: string;
       role: string;
+      id: string;
     };
     return payload;
   }

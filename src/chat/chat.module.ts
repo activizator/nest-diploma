@@ -5,9 +5,10 @@ import { TypegooseModule } from 'nestjs-typegoose';
 import { MessageModel, SupportRequestModel } from './chat.model';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
+import { ChatGateway } from './chat.gateway';
 
 @Module({
-  providers: [ChatService],
+  providers: [ChatService, ChatGateway],
   controllers: [ChatController],
   imports: [
     AuthModule,

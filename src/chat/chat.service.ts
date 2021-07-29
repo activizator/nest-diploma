@@ -204,6 +204,7 @@ export class ChatService {
         {
           $match: {
             _id: { $in: messages },
+            readAt: { $exists: false },
           },
         },
         {
