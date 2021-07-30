@@ -13,10 +13,6 @@ export class HotelRoomService implements IHotelRoomService {
     private readonly hotelRoomModel: ReturnModelType<typeof HotelRoomModel>,
   ) {}
 
-  //   В методах findById и search флаг isEnabled может принимать только значения:
-  // true - флаг должен использоваться в фильтрации,
-  // undefined - флаг должен игнорироваться.
-
   async findById(id): Promise<HotelRoom> {
     const ObjectId = mongoose.Types.ObjectId;
     const ans = await this.hotelRoomModel

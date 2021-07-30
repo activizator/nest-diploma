@@ -123,7 +123,7 @@ export class HotelsController {
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() body,
   ) {
-    const isEnabled = true; // Если пользователь не аутентифицирован или его роль client, то при поиске всегда должен использоваться флаг isEnabled: true.
+    const isEnabled = true;
     const images = [];
     const im = body.images;
     Array.isArray(im) ? im.map((file) => images.push(file)) : images.push(im);

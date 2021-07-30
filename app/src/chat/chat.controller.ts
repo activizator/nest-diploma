@@ -36,7 +36,7 @@ export class ChatController {
     const id = u.id;
     return await this.chatService.createSupportRequest({ id, text });
   }
-  // Доступно только пользователям с ролью manager и пользователю с ролью client, который создал обращение.
+ 
   @UseGuards(JwtAuthGuard)
   @UseGuards(ManagerOrClientRoleGuard)
   @Post('/common/support-requests/:id/messages')
@@ -120,7 +120,7 @@ export class ChatController {
       user: u,
     });
   }
-  // Доступно только пользователям с ролью manager и пользователю с ролью client, который создал обращение.
+  
   @UseGuards(JwtAuthGuard)
   @UseGuards(ManagerOrClientRoleGuard)
   @Post('/common/support-requests/:id/messages/read')
