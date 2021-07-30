@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { ConnectedSocket } from '@nestjs/websockets';
 import {
   MessageBody,
@@ -6,6 +6,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { WSWrongClientRoleGuard } from 'src/auth/guards/roles.guard';
 import { WsGuard } from 'src/auth/guards/ws.guard';
 import { UIdService } from 'src/auth/uid.service';
 import { ChatService } from './chat.service';
@@ -32,30 +33,41 @@ export class ChatGateway {
   ) {}
   @WebSocketServer()
   server: any;
-  // client, который создал обращение.
+
   @UseGuards(WsGuard)
+  @UseGuards(WSWrongClientRoleGuard)
   @SubscribeMessage('message')
   async handleMessage(
     @MessageBody() message,
     @ConnectedSocket() client,
   ): Promise<void> {
-    const data = message.data;
-    const auth = client.handshake.headers.authorization;
-    const user = await this.uIdService.getUser(auth);
-    if (data.indexOf('subscribeToChat payload') !== -1) {
-      const pos = data.lastIndexOf(':');
-      const id = data.slice(pos + 1).trim();
-      const isActive = true;
-      const limit = 100;
-      const offset = 0;
-      const ans = await this.chatService.getMessages({
-        id,
-        isActive,
-        limit,
-        offset,
-        user,
-      });
-      client.emit('message', { data: JSON.stringify(ans) });
+    try {
+      const data = message.data;
+      const auth = client.handshake.headers.authorization;
+      const user = await this.uIdService.getUser(auth);
+      if (data.indexOf('subscribeToChat payload') !== -1) {
+        const pos = data.lastIndexOf(':');
+        const id = data.slice(pos + 1).trim();
+        const isActive = true;
+        const limit = 100;
+        const offset = 0;
+        const ans = await this.chatService.getMessages({
+          id,
+          isActive,
+          limit,
+          offset,
+          user,
+        });
+        client.emit('message', { data: JSON.stringify(ans) });
+      }
+    } catch {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'Запрошенная информация не найдена',
+        },
+        400,
+      );
     }
   }
 }
