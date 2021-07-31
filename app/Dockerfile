@@ -1,5 +1,6 @@
 FROM node:latest
-WORKDIR /dist
+WORKDIR /
 COPY package*.json ./
 RUN npm install
-COPY dist/ ./
+COPY . .
+RUN npm run build
