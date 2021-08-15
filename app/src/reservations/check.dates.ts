@@ -6,13 +6,8 @@ export class CheckDates {
     const dS = new Date(reservedDates.dateStart).getTime();
     const dE = new Date(reservedDates.dateEnd).getTime();
     if (d1 >= dS && d1 <= dE) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-        },
-        400,
-      );
+      return true;
     }
-    return true;
+    return false;
   }
 }
