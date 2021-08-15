@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ReturnModelType } from '@typegoose/typegoose';
 import { InjectModel } from 'nestjs-typegoose';
 import { UserModel } from './users.model';
-import { genSaltSync, hashSync } from 'bcryptjs';
+import { genSalt, hash } from 'bcryptjs';
 import { mongoose } from '@typegoose/typegoose';
 import { IUserService } from './user.interfaces';
 
@@ -15,8 +15,8 @@ export class UsersService implements IUserService {
 
   async create(data) {
     const { email, password, name, contactPhone, role } = data;
-    const sault = genSaltSync(10);
-    const passwordHash = hashSync(password, sault);
+    const sault = await genSalt(10);
+    const passwordHash = await hash(password, sault);
     const createdUser = new this.userModel({
       email,
       passwordHash,
