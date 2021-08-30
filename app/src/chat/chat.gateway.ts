@@ -1,15 +1,17 @@
-import { HttpException, HttpStatus, UseGuards } from '@nestjs/common';
-import { ConnectedSocket } from '@nestjs/websockets';
+import { UseGuards } from '@nestjs/common';
 import {
+  ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsResponse,
 } from '@nestjs/websockets';
 import { WSWrongClientRoleGuard } from 'src/auth/guards/roles.guard';
 import { WsGuard } from 'src/auth/guards/ws.guard';
-import { UIdService } from 'src/auth/uid.service';
 import { ChatService } from './chat.service';
+import { filter, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 const options = {
   handlePreflightRequest: (req, res) => {
@@ -29,45 +31,25 @@ const options = {
 export class ChatGateway {
   constructor(
     private readonly chatService: ChatService,
-    private readonly uIdService: UIdService,
-  ) {}
+  ) {
+  }
+
   @WebSocketServer()
   server: any;
 
   @UseGuards(WsGuard)
   @UseGuards(WSWrongClientRoleGuard)
-  @SubscribeMessage('message')
-  async handleMessage(
+  @SubscribeMessage('wait messages')
+  handleMessage(
     @MessageBody() message,
     @ConnectedSocket() client,
-  ): Promise<void> {
-    try {
-      const data = message.data;
-      const auth = client.handshake.headers.authorization;
-      const user = await this.uIdService.getUser(auth);
-      if (data.indexOf('subscribeToChat payload') !== -1) {
-        const pos = data.lastIndexOf(':');
-        const id = data.slice(pos + 1).trim();
-        const isActive = true;
-        const limit = 100;
-        const offset = 0;
-        const ans = await this.chatService.getMessages({
-          id,
-          isActive,
-          limit,
-          offset,
-          user,
-        });
-        client.emit('message', { data: JSON.stringify(ans) });
-      }
-    } catch {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Запрошенная информация не найдена',
-        },
-        400,
-      );
-    }
+  ): Observable<WsResponse<any>> {
+    return this.chatService.messages.pipe(
+      filter((update) => update.requestId === message.requestId),
+      map(({ message }) => ({
+        event: 'message',
+        data: message,
+      })),
+    );
   }
 }
