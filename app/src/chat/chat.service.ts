@@ -10,11 +10,10 @@ export class ChatService {
     @InjectModel(MessageModel)
     private readonly messageModel: ReturnModelType<typeof MessageModel>,
     @InjectModel(SupportRequestModel)
-    private readonly supportRequestModel: ReturnModelType<
-      typeof SupportRequestModel
-    >,
+    private readonly supportRequestModel: ReturnModelType<typeof SupportRequestModel>,
     private readonly userService: UsersService,
-  ) {}
+  ) {
+  }
 
   async createSupportRequest({ id, text }) {
     const ObjectId = mongoose.Types.ObjectId;
@@ -96,21 +95,52 @@ export class ChatService {
   }
 
   async findSupportRequests({ userId, isActive, limit, offset }) {
-    const ObjectId = mongoose.Types.ObjectId;
     const role = userId === 'forManagerAny' ? 'manager' : 'client';
-    userId = userId === 'forManagerAny' ? { $exists: true } : ObjectId(userId);
+
+    if (role === 'manager') {
+      return this.findManagerSupportRequests(isActive, offset, limit);
+    } else {
+      return this.findClientSupportRequests(userId, isActive, offset, limit);
+    }
+  }
+
+  private async hasNewMessages() {
     const mess = await this.messageModel
       .findOne({ readAt: { $exists: false } })
       .exec();
-    const hasNewMessages = mess.id ? true : false;
-    const projectC = {
+    return !!mess.id;
+  }
+
+  private async findClientSupportRequests(userId, isActive, offset, limit) {
+    const hasNewMessages = await this.hasNewMessages();
+    const project = {
       _id: 0,
       id: '$_id',
       createdAt: 1,
       isActive: 1,
       hasNewMessages: 1,
     };
-    const projectM = {
+    return await this.supportRequestModel
+      .aggregate([
+        {
+          $match: {
+            user: mongoose.Types.ObjectId(userId),
+            isActive,
+          },
+        },
+        { $addFields: { hasNewMessages } },
+        {
+          $project: project,
+        },
+      ])
+      .skip(offset)
+      .limit(limit)
+      .exec();
+  }
+
+  private async findManagerSupportRequests(isActive, offset, limit) {
+    const hasNewMessages = await this.hasNewMessages();
+    const project = {
       _id: 0,
       id: '$_id',
       createdAt: 1,
@@ -123,55 +153,35 @@ export class ChatService {
         contactPhone: '$user.contactPhone',
       },
     };
-    if (role === 'manager') {
-      const answer = await this.supportRequestModel
-        .aggregate([
-          {
-            $match: {
-              user: userId,
-              isActive,
-            },
-          },
-          {
-            $lookup: {
-              localField: 'user',
-              from: 'User',
-              foreignField: '_id',
-              as: 'user',
-            },
-          },
-          {
-            $unwind: {
-              path: '$user',
-            },
-          },
-          { $addFields: { hasNewMessages } },
-          {
-            $project: projectM,
-          },
-        ])
-        .skip(offset)
-        .limit(limit)
-        .exec();
-      return answer;
-    }
-    const answer = await this.supportRequestModel
+    return await this.supportRequestModel
       .aggregate([
         {
           $match: {
-            user: userId,
+            user: { $exists: true },
             isActive,
+          },
+        },
+        {
+          $lookup: {
+            localField: 'user',
+            from: 'User',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $unwind: {
+            path: '$user',
           },
         },
         { $addFields: { hasNewMessages } },
         {
-          $project: projectC,
+          $project: project,
         },
       ])
       .skip(offset)
       .limit(limit)
       .exec();
-    return answer;
   }
 
   async getMessages({ id, isActive, limit, offset, user }) {
