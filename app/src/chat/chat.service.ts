@@ -115,15 +115,16 @@ export class ChatService {
     }
   }
 
-  private async hasNewMessages() {
+  async hasNewMessages({ userId }) {
+    const uId = userId ? userId : { $exists: true };
     const mess = await this.messageModel
-      .findOne({ readAt: { $exists: false } })
+      .findOne({ readAt: { $exists: false }, author: uId })
       .exec();
     return !!mess.id;
   }
 
   private async findClientSupportRequests(userId, isActive, offset, limit) {
-    const hasNewMessages = await this.hasNewMessages();
+    const hasNewMessages = await this.hasNewMessages({ userId });
     const project = {
       _id: 0,
       id: '$_id',
@@ -150,7 +151,7 @@ export class ChatService {
   }
 
   private async findManagerSupportRequests(isActive, offset, limit) {
-    const hasNewMessages = await this.hasNewMessages();
+    const hasNewMessages = await this.hasNewMessages({ userId: undefined });
     const project = {
       _id: 0,
       id: '$_id',
