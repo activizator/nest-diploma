@@ -3,9 +3,11 @@ import { mongoose, ReturnModelType } from '@typegoose/typegoose';
 import { InjectModel } from 'nestjs-typegoose';
 import { MessageModel, SupportRequestModel } from './chat.model';
 import { UsersService } from 'src/users/users.service';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class ChatService {
+  private messagesSubject = new Subject<{requestId: string, message:any}>();
   constructor(
     @InjectModel(MessageModel)
     private readonly messageModel: ReturnModelType<typeof MessageModel>,
@@ -15,6 +17,9 @@ export class ChatService {
   ) {
   }
 
+  get messages() {
+    return this.messagesSubject.asObservable();
+  }
   async createSupportRequest({ id, text }) {
     const ObjectId = mongoose.Types.ObjectId;
     const createdMessage = new this.messageModel({
@@ -71,19 +76,25 @@ export class ChatService {
         },
         { upsert: true, new: true, useFindAndModify: false },
       );
-      return [
-        {
-          id: answer._id,
-          createdAt: answer.sentAt,
-          text: answer.text,
-          readAt: answer.readAt,
-          author: {
-            id: answer.author,
-            name: userName,
-          },
+      let resultMessage = {
+        id: answer._id,
+        createdAt: answer.sentAt,
+        text: answer.text,
+        readAt: answer.readAt,
+        author: {
+          id: answer.author,
+          name: userName,
         },
+      };
+      this.messagesSubject.next({
+        requestId: ObjectId(id).toString(),
+        message: resultMessage
+      })
+      return [
+        resultMessage,
       ];
-    } catch {
+    } catch(err) {
+      console.error(err);
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
