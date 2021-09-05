@@ -2,37 +2,45 @@ const socketOptions = {
   transportOptions: {
     polling: {
       extraHeaders: {
-        Authorization: 'Bearer token',
+        Authorization: 'Bearer {jwt.token}',
       },
     },
   },
 };
 
-const socket = io.connect('http://localhost:3000/', socketOptions);
+const SERVER = 'http://localhost:3000/';
+
+const socket = io.connect(SERVER, socketOptions);
 
 const message = document.getElementById('message');
 const messages = document.getElementById('messages');
 
-const SUPPORT_REQUEST_ID = "SOME REQUEST ID";
+const SUPPORT_REQUEST_ID = 'SOME SUPPORT_REQUEST_ID';
+
 const handleSubmitNewMessage = () => {
-  fetch(`http://localhost:3000/api/common/support-requests/${SUPPORT_REQUEST_ID}/messages`, {
+  fetch(`${SERVER}api/common/support-requests/${SUPPORT_REQUEST_ID}/messages`, {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer {jwt.token}',
     },
     body: JSON.stringify({ text: message.value }),
   }).then(() => console.log('ok'));
 };
 
-fetch(`http://localhost:3000/api/common/support-requests/${SUPPORT_REQUEST_ID}/messages`)
+fetch(`${SERVER}api/common/support-requests/${SUPPORT_REQUEST_ID}/messages`, {
+  headers: {
+    Authorization: 'Bearer {jwt.token}',
+  },
+})
   .then((res) => res.json())
-  .then(messages => {
+  .then((messages) => {
     messages.forEach(handleNewMessage);
   })
   .then(() => {
-    socket.emit('wait messages', {requestId: SUPPORT_REQUEST_ID})
-  })
+    socket.emit('wait messages', { requestId: SUPPORT_REQUEST_ID });
+  });
 
 socket.on('message', (data) => {
   handleNewMessage(data);
